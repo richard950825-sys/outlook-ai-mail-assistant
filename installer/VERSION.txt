@@ -1,0 +1,24 @@
+﻿AI 邮件助手 安装包
+版本信息
+========
+插件构建: 065b2cbb
+打包时间: 2026-11-03
+适用 Outlook: Microsoft Outlook 2016 x64（16.0.4266.1001 验证）
+运行环境: Windows 10/11 x64 + .NET Framework 4.7.2+
+安装方式: 按用户安装（HKCU，无需管理员权限）
+
+包内容
+------
+Setup.cmd                 一键安装入口（双击）
+install.ps1               安装脚本（检查环境/复制 DLL/注册 COM/可选写入 API Key）
+Uninstall.cmd             一键卸载入口
+uninstall.ps1             卸载脚本
+payload\OutlookAIAddin.dll   插件本体（.NET 4.7.2 COM 加载项）
+README.txt                安装与使用说明
+VERSION.txt               本文件
+
+安装位置
+--------
+- 插件: %LOCALAPPDATA%\OutlookAIAssistant\Addin\latest\OutlookAIAddin.dll
+- 配置: %APPDATA%\OutlookAIAssistant\settings.json（API Key 用 DPAPI 加密）
+- 日志: %APPDATA%\OutlookAIAssistant\addin.log

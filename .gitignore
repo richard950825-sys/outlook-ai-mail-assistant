@@ -1,0 +1,16 @@
+# .NET build outputs
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.pdb
+
+# IDE / OS
+.DS_Store
+Thumbs.db
+
+# local logs / config (never commit personal settings or keys)
+*.log
+settings.json
+templates.json

@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui">
+  <contextMenus>
+    <contextMenu idMso="ContextMenuText">
+      <button id="OaiWordPolishZh" label="AI 润色成中文（选中文字）" onAction="OnWordPolishZh" />
+      <button id="OaiWordPolishEn" label="AI 润色成英文（选中文字）" onAction="OnWordPolishEn" />
+    </contextMenu>
+  </contextMenus>
+</customUI>

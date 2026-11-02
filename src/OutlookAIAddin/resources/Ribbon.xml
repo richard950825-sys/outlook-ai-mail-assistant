@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="OnRibbonLoad">
+  <ribbon>
+    <tabs>
+      <tab id="oaiTab" label="AI 邮件助手" insertAfterMso="TabMail">
+        <group id="oaiGroupRead" label="阅读邮件">
+          <button id="btnSummary" label="AI 摘要" size="large" getImage="GetImage" onAction="OnSummary"
+                  screentip="对当前邮件生成要点摘要"
+                  supertip="对邮件列表 / 阅读窗格 / 独立打开邮件中的当前邮件生成 3-6 条要点摘要，支持中文或跟随原文。"/>
+          <button id="btnTranslate" label="AI 翻译" size="large" getImage="GetImage" onAction="OnTranslate"
+                  screentip="翻译当前邮件"
+                  supertip="把当前邮件翻译成中文或英文（自动判断方向），在 AI 助手窗口中可切换目标语言。"/>
+        </group>
+        <group id="oaiGroupCompose" label="撰写邮件">
+          <button id="btnPolish" label="润色选中" size="large" getImage="GetImage" onAction="OnPolish"
+                  screentip="润色选中的文字"
+                  supertip="在撰写窗口中选中文字后点击，AI 会润色并可直接替换回邮件；未选中时可处理整封正文。"/>
+          <button id="btnWriteMail" label="写新邮件" size="large" getImage="GetImage" onAction="OnWriteMail"
+                  screentip="一句话写邮件"
+                  supertip="选择自定义模板，写一句话要求，AI 生成完整邮件并新建到 Outlook 撰写窗口。"/>
+        </group>
+        <group id="oaiGroupAssistant" label="助手">
+          <button id="btnAssistant" label="打开 AI 助手" size="large" getImage="GetImage" onAction="OnOpenAssistant"
+                  screentip="打开 AI 邮件助手窗口"
+                  supertip="打开独立窗口：摘要、翻译、润色、写邮件、模板管理与设置。"/>
+        </group>
+      </tab>
+    </tabs>
+  </ribbon>
+  <contextMenus>
+    <contextMenu idMso="ContextMenuMailItem">
+      <button id="ctxSummary" label="AI 摘要" getImage="GetImage" onAction="OnSummary"/>
+      <button id="ctxTranslate" label="AI 翻译" getImage="GetImage" onAction="OnTranslate"/>
+      <button id="ctxAssistant" label="AI 邮件助手..." onAction="OnOpenAssistant"/>
+    </contextMenu>
+    <contextMenu idMso="ContextMenuText">
+      <button id="ctxPolishZh" label="AI 润色成中文（选中文字）" onAction="OnNativePolishZh"/>
+      <button id="ctxPolishEn" label="AI 润色成英文（选中文字）" onAction="OnNativePolishEn"/>
+    </contextMenu>
+    <!-- Word 的只读邮件正文菜单；ContextMenuText 只覆盖可编辑正文。 -->
+    <contextMenu idMso="ContextMenuReadOnlyMailText">
+      <button id="ctxReadSummary" label="AI 摘要（选中文字）" onAction="OnNativeReadSummary"/>
+      <button id="ctxReadTranslate" label="AI 翻译（选中文字）" onAction="OnNativeReadTranslate"/>
+    </contextMenu>
+    <contextMenu idMso="ContextMenuReadOnlyMailList">
+      <button id="ctxReadListSummary" label="AI 摘要（选中文字）" onAction="OnNativeReadSummary"/>
+      <button id="ctxReadListTranslate" label="AI 翻译（选中文字）" onAction="OnNativeReadTranslate"/>
+    </contextMenu>
+    <contextMenu idMso="ContextMenuReadOnlyMailTextTable">
+      <button id="ctxReadTextTableSummary" label="AI 摘要（选中文字）" onAction="OnNativeReadSummary"/>
+      <button id="ctxReadTextTableTranslate" label="AI 翻译（选中文字）" onAction="OnNativeReadTranslate"/>
+    </contextMenu>
+    <contextMenu idMso="ContextMenuReadOnlyMailTableCell">
+      <button id="ctxReadCellSummary" label="AI 摘要（选中文字）" onAction="OnNativeReadSummary"/>
+      <button id="ctxReadCellTranslate" label="AI 翻译（选中文字）" onAction="OnNativeReadTranslate"/>
+    </contextMenu>
+    <contextMenu idMso="ContextMenuReadOnlyMailListTable">
+      <button id="ctxReadListTableSummary" label="AI 摘要（选中文字）" onAction="OnNativeReadSummary"/>
+      <button id="ctxReadListTableTranslate" label="AI 翻译（选中文字）" onAction="OnNativeReadTranslate"/>
+    </contextMenu>
+    <contextMenu idMso="ContextMenuReadOnlyMailTable">
+      <button id="ctxReadTableSummary" label="AI 摘要（选中文字）" onAction="OnNativeReadSummary"/>
+      <button id="ctxReadTableTranslate" label="AI 翻译（选中文字）" onAction="OnNativeReadTranslate"/>
+    </contextMenu>
+    <contextMenu idMso="ContextMenuReadOnlyMailTableWhole">
+      <button id="ctxReadWholeTableSummary" label="AI 摘要（选中文字）" onAction="OnNativeReadSummary"/>
+      <button id="ctxReadWholeTableTranslate" label="AI 翻译（选中文字）" onAction="OnNativeReadTranslate"/>
+    </contextMenu>
+    <contextMenu idMso="ContextMenuReadOnlyMailHyperlink">
+      <button id="ctxReadLinkSummary" label="AI 摘要（选中文字）" onAction="OnNativeReadSummary"/>
+      <button id="ctxReadLinkTranslate" label="AI 翻译（选中文字）" onAction="OnNativeReadTranslate"/>
+    </contextMenu>
+  </contextMenus>
+</customUI>
