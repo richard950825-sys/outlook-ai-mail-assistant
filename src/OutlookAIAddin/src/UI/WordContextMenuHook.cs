@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Automation;
@@ -101,14 +101,42 @@ namespace OutlookAIAddin
             {
                 dynamic app = Connect.AppObject;
                 if (app == null) { return ""; }
-                dynamic inspector = app.ActiveInspector();
-                if (inspector == null) { return ""; }
-                try { inspector.Activate(); } catch { }
-                dynamic doc = inspector.WordEditor;
-                if (doc == null) { return ""; }
-                try { doc.Activate(); } catch { }
-                dynamic selection = doc.Application.Selection;
-                return NormalizeWordText(Convert.ToString(selection.Text) ?? "");
+
+                // 1) 独立撰写窗口
+                dynamic inspector = null;
+                try { inspector = app.ActiveInspector(); } catch { }
+                if (inspector != null)
+                {
+                    try { inspector.Activate(); } catch { }
+                    dynamic doc = null;
+                    try { doc = inspector.WordEditor; } catch { }
+                    if (doc != null)
+                    {
+                        try { doc.Activate(); } catch { }
+                        dynamic selection = doc.Application.Selection;
+                        return NormalizeWordText(Convert.ToString(selection.Text) ?? "");
+                    }
+                }
+
+                // 2) 阅读窗格里的内嵌回复（inline reply）
+                dynamic explorer = null;
+                try { explorer = app.ActiveExplorer(); } catch { }
+                if (explorer != null)
+                {
+                    try
+                    {
+                        object inlineItem = explorer.ActiveInlineResponse;
+                        object editor = explorer.ActiveInlineResponseWordEditor;
+                        if (inlineItem != null && editor != null)
+                        {
+                            dynamic inlineDoc = editor;
+                            dynamic selection = inlineDoc.Application.Selection;
+                            return NormalizeWordText(Convert.ToString(selection.Text) ?? "");
+                        }
+                    }
+                    catch (Exception ex) { Log.Warn("读取内嵌回复选区: " + ex.Message); }
+                }
+                return "";
             }
             catch (Exception ex)
             {

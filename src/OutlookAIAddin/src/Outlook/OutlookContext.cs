@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -41,6 +41,14 @@ namespace OutlookAIAddin
         /// </summary>
         public static OutlookContext Capture(object application, object ribbonContextItem)
         {
+            return Capture(application, ribbonContextItem, false);
+        }
+
+        /// <summary>
+        /// preferCompose = true 时，会识别阅读窗格里的“内嵌回复”（inline reply）作为撰写场景。
+        /// </summary>
+        public static OutlookContext Capture(object application, object ribbonContextItem, bool preferCompose)
+        {
             var ctx = new OutlookContext();
             try
             {
@@ -73,6 +81,23 @@ namespace OutlookAIAddin
                 }
 
                 object explorer = TryGetActiveExplorer(app);
+
+                // 阅读窗格里的“内嵌回复”：Outlook 把它挂在 Explorer 上，不在 Inspector 里
+                if (preferCompose && explorer != null)
+                {
+                    object inlineItem = TryGetInlineResponse(explorer);
+                    if (inlineItem != null && IsMailItem(inlineItem) && !IsSentMail(inlineItem))
+                    {
+                        ctx.Kind = "compose";
+                        ctx.Source = "阅读窗格（内嵌回复）";
+                        ctx.ReadItem(inlineItem, ctx.Source);
+                        object inlineEditor = TryGetInlineWordEditor(explorer);
+                        if (inlineEditor != null) { ctx.ReadWordSelectionFromEditor(inlineEditor); }
+                        else { ctx.WordEditorAvailable = false; }
+                        return ctx;
+                    }
+                }
+
                 if (explorer != null)
                 {
                     object item = TryGetFirstSelectedItem(explorer);
@@ -120,7 +145,24 @@ namespace OutlookAIAddin
                     WordEditorAvailable = false;
                     return;
                 }
+                ReadWordSelectionFromEditor(editor);
+            }
+            catch (Exception ex)
+            {
+                WordEditorAvailable = false;
+                Log.Warn("读取选中文字失败：" + ex.Message);
+            }
+        }
 
+        private void ReadWordSelectionFromEditor(object editor)
+        {
+            try
+            {
+                if (editor == null)
+                {
+                    WordEditorAvailable = false;
+                    return;
+                }
                 WordEditor = editor;
                 WordEditorAvailable = true;
 
@@ -132,7 +174,7 @@ namespace OutlookAIAddin
             catch (Exception ex)
             {
                 WordEditorAvailable = false;
-                Log.Warn("读取选中文字失败：" + ex.Message);
+                Log.Warn("读取选中文字失败（内嵌回复/撰写）: " + ex.Message);
             }
         }
 
@@ -249,6 +291,36 @@ namespace OutlookAIAddin
             try { return a.ActiveInspector(); } catch { }
             try { return a.ActiveInspector; } catch { }
             return null;
+        }
+
+        private static object TryGetInlineResponse(object explorer)
+        {
+            if (explorer == null) { return null; }
+            dynamic e = explorer;
+            try { return e.ActiveInlineResponse; } catch { }
+            return null;
+        }
+
+        private static object TryGetInlineWordEditor(object explorer)
+        {
+            if (explorer == null) { return null; }
+            dynamic e = explorer;
+            try { return e.ActiveInlineResponseWordEditor; } catch { }
+            return null;
+        }
+
+        private static bool IsSentMail(object item)
+        {
+            if (item == null) { return false; }
+            try
+            {
+                dynamic mail = item;
+                return Convert.ToBoolean(mail.Sent);
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private static object TryGetActiveExplorer(object app)

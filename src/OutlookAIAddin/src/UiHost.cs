@@ -52,9 +52,18 @@ namespace OutlookAIAddin
             {
                 lock (Sync)
                 {
-                    if (_form == null || _form.IsDisposed) { _form = new MainForm(); }
-                    BringToFront(_form);
-                    _form.PrepareWithSelection(intent, selectionText, item);
+                    if (_form == null || _form.IsDisposed)
+                    {
+                        // 先设置 intent/selection 再 Show：OnFormLoad 里的上下文捕获会用到 intent
+                        _form = new MainForm();
+                        _form.PrepareWithSelection(intent, selectionText, item);
+                        BringToFront(_form);
+                    }
+                    else
+                    {
+                        BringToFront(_form);
+                        _form.PrepareWithSelection(intent, selectionText, item);
+                    }
                 }
             }
             catch (Exception ex)

@@ -740,7 +740,8 @@ namespace OutlookAIAddin
             {
                 object item = _pendingItem;
                 _pendingItem = null;
-                _ctx = OutlookContext.Capture(null, item);
+                bool preferCompose = _intent == "polish" || _intent == "polish_zh" || _intent == "polish_en";
+                _ctx = OutlookContext.Capture(null, item, preferCompose);
             }
             catch (Exception ex)
             {
@@ -757,6 +758,29 @@ namespace OutlookAIAddin
                      + ", source=" + _ctx.Source + ", subject=" + (_ctx.Subject ?? "")
                      + ", bodyLength=" + ((_ctx.BodyText ?? "").Length)
                      + ", selectionLength=" + ((_ctx.SelectionText ?? "").Length));
+        }
+
+        /// <summary>当前不是撰写上下文时，尝试重新捕获（含阅读窗格内嵌回复）。</summary>
+        private bool TryRecaptureComposeContext()
+        {
+            try
+            {
+                OutlookContext fresh = OutlookContext.Capture(null, null, true);
+                if (fresh != null && fresh.Kind == "compose" && fresh.HasItem)
+                {
+                    _ctx = fresh;
+                    UpdateHeader();
+                    UpdateActionAvailability();
+                    Log.Info("重新捕获撰写上下文: kind=compose, source=" + fresh.Source
+                             + ", selectionLength=" + ((fresh.SelectionText ?? "").Length));
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warn("TryRecaptureComposeContext: " + ex.Message);
+            }
+            return false;
         }
 
         private void UpdateHeader()
@@ -1218,9 +1242,9 @@ namespace OutlookAIAddin
             {
                 if (!CheckAiConfigured()) { return; }
                 if (!EnsureItemContext()) { return; }
-                if (_ctx.Kind != "compose")
+                if (_ctx.Kind != "compose" && !TryRecaptureComposeContext())
                 {
-                    Warn("请在打开或新建的邮件撰写窗口中选中文字，再使用润色功能。");
+                    Warn("请在打开的邮件撰写窗口，或阅读窗格的内嵌回复中选中文字，再使用润色功能。");
                     if (_tabs != null) { _tabs.SelectedTab = _tabPolish; }
                     return;
                 }
@@ -1275,9 +1299,9 @@ namespace OutlookAIAddin
             {
                 if (!CheckAiConfigured()) { return; }
                 if (!EnsureItemContext()) { return; }
-                if (_ctx.Kind != "compose")
+                if (_ctx.Kind != "compose" && !TryRecaptureComposeContext())
                 {
-                    Warn("翻译选中文字需要在撰写窗口中使用；阅读邮件请用「阅读助手」里的 AI 翻译。");
+                    Warn("翻译选中文字需要在撰写窗口（含阅读窗格内嵌回复）中使用；阅读邮件请用「阅读助手」里的 AI 翻译。");
                     return;
                 }
 

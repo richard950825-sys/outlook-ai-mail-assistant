@@ -1,7 +1,7 @@
 ﻿AI 邮件助手 安装包
 版本信息
 ========
-插件构建: 065b2cbb
+插件构建: 8cf60294
 打包时间: 2026-11-03
 适用 Outlook: Microsoft Outlook 2016 x64（16.0.4266.1001 验证）
 运行环境: Windows 10/11 x64 + .NET Framework 4.7.2+

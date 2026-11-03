@@ -4,6 +4,7 @@
 
 - **阅读**：选中文字 → 右键（**Office 原生右键菜单**）→ `AI 摘要（选中文字）` / `AI 翻译（选中文字）`
 - **撰写**：选中文字 → 右键（**Office 原生右键菜单**）→ `AI 润色成中文（选中文字）` / `AI 润色成英文（选中文字）`
+- **阅读窗格内嵌回复（inline reply）**：同样支持右键润色 / 替换选中文字（阅读窗格里的回复编辑器）
 - **邮件列表**：右键 → AI 摘要 / AI 翻译 / AI 邮件助手
 - **独立 AI 助手窗口**：摘要、翻译、润色（可一键替换选中文字）、自定义模板写邮件、模板管理、设置
 - API Key 使用 Windows DPAPI（当前用户）加密保存在本机
@@ -23,7 +24,7 @@
 
 ## 一键安装（推荐给同事/普通用户）
 
-1. 下载 [`dist/AI-Mail-Assistant-Setup-065b2cbb.zip`](dist/AI-Mail-Assistant-Setup-065b2cbb.zip)
+1. 下载 [`dist/AI-Mail-Assistant-Setup-8cf60294.zip`](dist/AI-Mail-Assistant-Setup-8cf60294.zip)
 2. 解压到任意目录（不要直接在压缩包里双击）
 3. **完全退出 Outlook**
 4. 双击 `Setup.cmd`
@@ -40,7 +41,7 @@
 
 卸载：双击 `Uninstall.cmd`（默认保留设置；`uninstall.ps1 -RemoveSettings` 可彻底删除配置）。
 
-> ZIP 包 SHA256：`FD723AEFA0093BC9EF93B397FD5A40615C20AC1142CD24E936F7F157F7976DEA`
+> ZIP 包 SHA256：`B41CA77C0D3135F91154BE6A59B9B9EC5E3341329225EAF8D3B7F6DFF9678EFF`
 
 ## 目录结构
 
@@ -97,6 +98,7 @@ dotnet build src/OutlookAIAddin/OutlookAIAddin.csproj -c Release
 - 仅在 **Outlook 2016 x64（16.0.4266.1001）+ Windows 11** 验证；其他 Office 版本（2019/2021/365）未验证，理论可行但右键菜单 ID 可能需要调整。
 - `deepseek-flash` 是推理模型，长文本可能把 `max_tokens` 消耗在推理上导致返回空（程序会自动加大额度重试）；建议使用 `deepseek-chat`。
 - 32 位（x86）Office 未验证（本项目为 AnyCPU，理论可加载）。
+- 阅读窗格内嵌回复的“替换选中文字”依赖 `Explorer.ActiveInlineResponseWordEditor`（Outlook 2013+ 提供）。
 
 ## License
 
