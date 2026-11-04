@@ -102,45 +102,78 @@ namespace OutlookAIAddin
                 dynamic app = Connect.AppObject;
                 if (app == null) { return ""; }
 
-                // 1) 独立撰写窗口
+                // 用 ActiveWindow 判断真正活动的窗口：34=Explorer，35=Inspector。
+                // 不能用 ActiveInspector()：阅读窗格在前台时它可能返回后台的邮件窗口。
+                int activeClass = 0;
+                dynamic activeWindow = null;
+                try { activeWindow = app.ActiveWindow(); } catch { }
+                try { activeClass = activeWindow == null ? 0 : Convert.ToInt32(activeWindow.Class); } catch { }
+                Log.Info("CaptureComposeSelection: activeClass=" + activeClass);
+
+                if (activeClass == 35)
+                {
+                    return CaptureFromInspector(activeWindow);
+                }
+                if (activeClass == 34)
+                {
+                    return CaptureFromInlineResponse(activeWindow);
+                }
+
+                // 兜底：先 Inspector，再内嵌回复
                 dynamic inspector = null;
                 try { inspector = app.ActiveInspector(); } catch { }
                 if (inspector != null)
                 {
-                    try { inspector.Activate(); } catch { }
-                    dynamic doc = null;
-                    try { doc = inspector.WordEditor; } catch { }
-                    if (doc != null)
-                    {
-                        try { doc.Activate(); } catch { }
-                        dynamic selection = doc.Application.Selection;
-                        return NormalizeWordText(Convert.ToString(selection.Text) ?? "");
-                    }
+                    string text = CaptureFromInspector(inspector);
+                    if (text.Length > 0) { return text; }
                 }
-
-                // 2) 阅读窗格里的内嵌回复（inline reply）
                 dynamic explorer = null;
                 try { explorer = app.ActiveExplorer(); } catch { }
-                if (explorer != null)
-                {
-                    try
-                    {
-                        object inlineItem = explorer.ActiveInlineResponse;
-                        object editor = explorer.ActiveInlineResponseWordEditor;
-                        if (inlineItem != null && editor != null)
-                        {
-                            dynamic inlineDoc = editor;
-                            dynamic selection = inlineDoc.Application.Selection;
-                            return NormalizeWordText(Convert.ToString(selection.Text) ?? "");
-                        }
-                    }
-                    catch (Exception ex) { Log.Warn("读取内嵌回复选区: " + ex.Message); }
-                }
+                if (explorer != null) { return CaptureFromInlineResponse(explorer); }
                 return "";
             }
             catch (Exception ex)
             {
                 Log.Warn("CaptureComposeSelection: " + ex.Message);
+                return "";
+            }
+        }
+
+        private static string CaptureFromInspector(object inspector)
+        {
+            try
+            {
+                dynamic insp = inspector;
+                try { insp.Activate(); } catch { }
+                dynamic doc = null;
+                try { doc = insp.WordEditor; } catch { }
+                if (doc == null) { return ""; }
+                try { doc.Activate(); } catch { }
+                dynamic selection = doc.Application.Selection;
+                return NormalizeWordText(Convert.ToString(selection.Text) ?? "");
+            }
+            catch (Exception ex)
+            {
+                Log.Warn("CaptureFromInspector: " + ex.Message);
+                return "";
+            }
+        }
+
+        private static string CaptureFromInlineResponse(object explorer)
+        {
+            try
+            {
+                dynamic exp = explorer;
+                object inlineItem = exp.ActiveInlineResponse;
+                object editor = exp.ActiveInlineResponseWordEditor;
+                if (inlineItem == null || editor == null) { return ""; }
+                dynamic doc = editor;
+                dynamic selection = doc.Application.Selection;
+                return NormalizeWordText(Convert.ToString(selection.Text) ?? "");
+            }
+            catch (Exception ex)
+            {
+                Log.Warn("CaptureFromInlineResponse: " + ex.Message);
                 return "";
             }
         }

@@ -65,9 +65,16 @@ namespace OutlookAIAddin
                     return ctx;
                 }
 
-                object inspector = TryGetActiveInspector(app);
-                if (inspector != null)
+                // 用 ActiveWindow 的 Class 判断真正活动的 Outlook 窗口：
+                // 34 = Explorer（列表/阅读窗格），35 = Inspector（独立邮件窗口）。
+                // 不能用 ActiveInspector()：Explorer 在前台时它仍可能返回后台的 Inspector。
+                object activeWindow = TryGetActiveWindow(app);
+                int activeClass = GetOutlookClass(activeWindow);
+                Log.Info("Capture: activeWindow class=" + activeClass + ", preferCompose=" + preferCompose);
+
+                if (activeClass == 35)
                 {
+                    object inspector = activeWindow;
                     object item = TryGetCurrentItem(inspector);
                     if (item != null)
                     {
@@ -79,28 +86,68 @@ namespace OutlookAIAddin
                         return ctx;
                     }
                 }
-
-                object explorer = TryGetActiveExplorer(app);
-
-                // 阅读窗格里的“内嵌回复”：Outlook 把它挂在 Explorer 上，不在 Inspector 里
-                if (preferCompose && explorer != null)
+                else if (activeClass == 34)
                 {
-                    object inlineItem = TryGetInlineResponse(explorer);
-                    if (inlineItem != null && IsMailItem(inlineItem) && !IsSentMail(inlineItem))
+                    object explorer = activeWindow;
+
+                    // 阅读窗格里的“内嵌回复”：挂在 Explorer 上，不在 Inspector 里
+                    if (preferCompose)
                     {
-                        ctx.Kind = "compose";
-                        ctx.Source = "阅读窗格（内嵌回复）";
-                        ctx.ReadItem(inlineItem, ctx.Source);
-                        object inlineEditor = TryGetInlineWordEditor(explorer);
-                        if (inlineEditor != null) { ctx.ReadWordSelectionFromEditor(inlineEditor); }
-                        else { ctx.WordEditorAvailable = false; }
+                        object inlineItem = TryGetInlineResponse(explorer);
+                        if (inlineItem != null && IsMailItem(inlineItem) && !IsSentMail(inlineItem))
+                        {
+                            ctx.Kind = "compose";
+                            ctx.Source = "阅读窗格（内嵌回复）";
+                            ctx.ReadItem(inlineItem, ctx.Source);
+                            object inlineEditor = TryGetInlineWordEditor(explorer);
+                            if (inlineEditor != null) { ctx.ReadWordSelectionFromEditor(inlineEditor); }
+                            else { ctx.WordEditorAvailable = false; }
+                            return ctx;
+                        }
+                    }
+
+                    object selected = TryGetFirstSelectedItem(explorer);
+                    if (selected != null)
+                    {
+                        ctx.ReadItem(selected, "阅读窗格 / 列表");
                         return ctx;
                     }
                 }
 
-                if (explorer != null)
+                // 兜底（拿不到 ActiveWindow 时沿用旧逻辑）
+                object fallbackInspector = TryGetActiveInspector(app);
+                if (fallbackInspector != null)
                 {
-                    object item = TryGetFirstSelectedItem(explorer);
+                    object item = TryGetCurrentItem(fallbackInspector);
+                    if (item != null)
+                    {
+                        bool compose = IsComposeMail(item);
+                        ctx.Kind = compose ? "compose" : "read";
+                        ctx.Inspector = fallbackInspector;
+                        ctx.ReadItem(item, compose ? "独立窗口（撰写）" : "独立窗口（阅读）");
+                        if (compose) { ctx.ReadWordSelection(); }
+                        return ctx;
+                    }
+                }
+
+                object fallbackExplorer = TryGetActiveExplorer(app);
+                if (fallbackExplorer != null)
+                {
+                    if (preferCompose)
+                    {
+                        object inlineItem = TryGetInlineResponse(fallbackExplorer);
+                        if (inlineItem != null && IsMailItem(inlineItem) && !IsSentMail(inlineItem))
+                        {
+                            ctx.Kind = "compose";
+                            ctx.Source = "阅读窗格（内嵌回复）";
+                            ctx.ReadItem(inlineItem, ctx.Source);
+                            object inlineEditor = TryGetInlineWordEditor(fallbackExplorer);
+                            if (inlineEditor != null) { ctx.ReadWordSelectionFromEditor(inlineEditor); }
+                            else { ctx.WordEditorAvailable = false; }
+                            return ctx;
+                        }
+                    }
+                    object item = TryGetFirstSelectedItem(fallbackExplorer);
                     if (item != null)
                     {
                         ctx.ReadItem(item, "阅读窗格 / 列表");
@@ -291,6 +338,28 @@ namespace OutlookAIAddin
             try { return a.ActiveInspector(); } catch { }
             try { return a.ActiveInspector; } catch { }
             return null;
+        }
+
+        private static object TryGetActiveWindow(object app)
+        {
+            if (app == null) { return null; }
+            dynamic a = app;
+            try { return a.ActiveWindow(); } catch { }
+            return null;
+        }
+
+        private static int GetOutlookClass(object value)
+        {
+            if (value == null) { return 0; }
+            try
+            {
+                dynamic obj = value;
+                return Convert.ToInt32(obj.Class);
+            }
+            catch
+            {
+                return 0;
+            }
         }
 
         private static object TryGetInlineResponse(object explorer)

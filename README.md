@@ -24,7 +24,7 @@
 
 ## 一键安装（推荐给同事/普通用户）
 
-1. 下载 [`dist/AI-Mail-Assistant-Setup-8cf60294.zip`](dist/AI-Mail-Assistant-Setup-8cf60294.zip)
+1. 下载 [`dist/AI-Mail-Assistant-Setup-3051aaa8.zip`](dist/AI-Mail-Assistant-Setup-3051aaa8.zip)
 2. 解压到任意目录（不要直接在压缩包里双击）
 3. **完全退出 Outlook**
 4. 双击 `Setup.cmd`
@@ -41,7 +41,7 @@
 
 卸载：双击 `Uninstall.cmd`（默认保留设置；`uninstall.ps1 -RemoveSettings` 可彻底删除配置）。
 
-> ZIP 包 SHA256：`B41CA77C0D3135F91154BE6A59B9B9EC5E3341329225EAF8D3B7F6DFF9678EFF`
+> ZIP 包 SHA256：`ADC1FA2B8C57D543490FE3F5B7E61289CF89EE3AC9E9468893699A9766436715`
 
 ## 目录结构
 
@@ -99,6 +99,7 @@ dotnet build src/OutlookAIAddin/OutlookAIAddin.csproj -c Release
 - `deepseek-flash` 是推理模型，长文本可能把 `max_tokens` 消耗在推理上导致返回空（程序会自动加大额度重试）；建议使用 `deepseek-chat`。
 - 32 位（x86）Office 未验证（本项目为 AnyCPU，理论可加载）。
 - 阅读窗格内嵌回复的“替换选中文字”依赖 `Explorer.ActiveInlineResponseWordEditor`（Outlook 2013+ 提供）。
+- 上下文按 `Application.ActiveWindow().Class`（Explorer / Inspector）判断：即使后台开着独立邮件窗口，也不会再把阅读窗格/内嵌回复的选区识别错。
 
 ## License
 
